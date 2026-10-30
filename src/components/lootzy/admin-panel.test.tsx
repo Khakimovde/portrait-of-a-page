@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/lootzy-cloud", () => ({ cloudCall: vi.fn() }));
 import { cloudCall, type CloudResult, type Account } from "@/lib/lootzy-cloud";
 import AdminPanel from "./admin-panel";
-const account: Account = { telegram_id: 123, first_name: "Test User", last_name: null, username: "testuser", photo_url: null, balance_cents: 0, red: 0, purple: 0, green: 0, pink: 0, opened: 0, earned_cents: 0, created_at: "2026-10-29T10:00:00Z", updated_at: "2026-10-29T10:00:00Z" };
+const account: Account = { telegram_id: 123, first_name: "Test User", last_name: null, username: "testuser", photo_url: null, balance_cents: 0, red: 0, purple: 0, green: 0, pink: 0, opened: 0, earned_cents: 0, created_at: "2026-10-29T10:00:00Z", updated_at: "2026-10-29T10:00:00Z", subscribed_at: null };
 const base: CloudResult = { account, isAdmin: true, ads: 0, withdrawals: [], overview: { day: "2026-10-29", users: 1, reportedAds: 0, verifiedAds: 0, keys: 0, pending: 0 } };
 describe("admin grant flow", () => {
   it("searches ID, adds exact dollars and pink keys and reads updated values", async () => {

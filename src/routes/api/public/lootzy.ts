@@ -46,7 +46,7 @@ export const Route = createFileRoute("/api/public/lootzy")({ server: { handlers:
         if (d.action === "withdraw" && d.method) await notify(profile.id, withdrawalText("pending", d.amount ?? 0, d.method));
         if (d.action === "decision" && mutation && typeof mutation === "object" && !Array.isArray(mutation)) {
           const w = mutation as { telegram_id?: number; status?: string; amount_cents?: number; method?: string };
-          if (w.telegram_id && w.status === d.status) await notify(w.telegram_id, withdrawalText(w.status, w.amount_cents ?? 0, w.method ?? ""));
+          if (w.telegram_id && w.status === d.status) await notify(w.telegram_id, withdrawalText(d.status, w.amount_cents ?? 0, w.method ?? ""));
         }
         if (d.action === "open" && mutation && typeof mutation === "object" && !Array.isArray(mutation)) {
           return Response.json({ account: mutation["account"], reward: mutation["reward"], isAdmin: admin, withdrawals: [], ads: 0 }, { headers });
