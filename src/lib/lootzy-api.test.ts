@@ -49,7 +49,7 @@ describe("Telegram account initialization", () => {
     vi.mocked(verifyTelegramProfile).mockResolvedValueOnce({ id: 5326022510, first_name: "Admin" });
     const response = await post({ action: "me", initData: "test-signed-launch" });
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ account, isAdmin: true, ads: 0, reportedAds: 0, withdrawals: [] });
+    expect(await response.json()).toEqual({ account, isAdmin: true, ads: 0, reportedAds: 0, withdrawals: [], referrals: { invited: 0, confirmed: 0, keys: 0 } });
     expect(upsert).toHaveBeenCalledWith({ telegram_id: 5326022510, role: "admin" });
   });
 

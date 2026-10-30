@@ -3,6 +3,7 @@ import { z } from "zod";
 import { verifyTelegramProfile } from "@/lib/telegram";
 import { isLootzyAdmin } from "@/lib/lootzy-admin-rules";
 import { tashkentDay } from "@/lib/lootzy-rules";
+import { notify, withdrawalText } from "@/lib/lootzy-bot";
 
 const schema = z.object({
   initData: z.string().min(1).max(16384),
@@ -42,6 +43,11 @@ export const Route = createFileRoute("/api/public/lootzy")({ server: { handlers:
         if (d.action === "open" && !d.color) throw new Error("Kalit rangini tanlang");
         if (d.action === "decision" && !d.status) throw new Error("Holatni tanlang");
         const mutation = checked(await db.rpc("lootzy_mutate", { p_actor: profile.id, p_action: d.action, p_id: d.id, ...(d.target ? { p_target: d.target } : {}), ...(d.color ? { p_color: d.color } : {}), p_quantity: d.quantity ?? 0, p_amount: d.amount ?? 0, ...(d.method ? { p_method: d.method } : {}), ...(d.destination ? { p_destination: d.destination } : {}), ...(d.status ? { p_status: d.status } : {}) }));
+        if (d.action === "withdraw" && d.method) await notify(profile.id, withdrawalText("pending", d.amount ?? 0, d.method));
+        if (d.action === "decision" && mutation && typeof mutation === "object" && !Array.isArray(mutation)) {
+          const w = mutation as { telegram_id?: number; status?: string; amount_cents?: number; method?: string };
+          if (w.telegram_id && w.status === d.status) await notify(w.telegram_id, withdrawalText(d.status, w.amount_cents ?? 0, w.method ?? ""));
+        }
         if (d.action === "open" && mutation && typeof mutation === "object" && !Array.isArray(mutation)) {
           return Response.json({ account: mutation["account"], reward: mutation["reward"], isAdmin: admin, withdrawals: [], ads: 0 }, { headers });
         }
@@ -52,7 +58,10 @@ export const Route = createFileRoute("/api/public/lootzy")({ server: { handlers:
       const end = new Date(Date.parse(start) + 86400000).toISOString();
       const ads = checked(await db.from("lootzy_events").select("id,verified").eq("telegram_id", profile.id).eq("kind", "ad_report").gte("created_at", start).lt("created_at", end));
       let withdrawals = checked(await db.from("lootzy_withdrawals").select("*").eq("telegram_id", profile.id).order("created_at", { ascending: false }).limit(100));
-      const result: Record<string, unknown> = { account, isAdmin: admin, ads: ads.filter(ad => ad.verified).length, reportedAds: ads.length, withdrawals };
+      const refs = checked(await db.from("lootzy_referrals").select("status").eq("referrer_id", profile.id));
+      const confirmedRefs = refs.filter(r => r.status === "confirmed").length;
+      const referrals = { invited: refs.length, confirmed: confirmedRefs, keys: Math.floor(confirmedRefs / 10) };
+      const result: Record<string, unknown> = { referrals, account, isAdmin: admin, ads: ads.filter(ad => ad.verified).length, reportedAds: ads.length, withdrawals };
       if (d.action === "overview" || d.action === "decision") {
         const events = checked(await db.from("lootzy_events").select("kind,quantity,verified").gte("created_at", start).lt("created_at", end));
         const count = await db.from("lootzy_accounts").select("telegram_id", { count: "exact", head: true });

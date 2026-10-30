@@ -10,7 +10,7 @@ describe("Lootzy requirements", () => {
     for (const source of ["ads", "referrals"] as const) expect(["green", "pink"]).not.toContain(completionReward(source, 0, 100).color);
     expect(EMPTY_KEYS.green).toBe(0); expect(EMPTY_KEYS.pink).toBe(0);
   });
-  it("uses the required bot and passes a Mini App referral parameter", () => expect(referralLink(12345)).toBe("https://t.me/Lootzy_enbot?startapp=ref_12345"));
+  it("referral link opens the bot /start, not the Mini App", () => expect(referralLink(12345)).toBe("https://t.me/Lootzy_enbot?start=ref_12345"));
 });import { recordAd, tashkentDay, adsToday } from "./lootzy-rules";
 describe("daily ad limit", () => {
   const t = new Date("2026-10-29T10:00:00Z");

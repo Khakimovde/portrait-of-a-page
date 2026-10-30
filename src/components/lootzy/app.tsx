@@ -65,7 +65,9 @@ function LootzyApp({ profile, initData }: { profile: TelegramProfile; initData: 
   const [isAdmin, setIsAdmin] = useState(false);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [cloudError, setCloudError] = useState("");
+  const [refStats, setRefStats] = useState({ invited: 0, confirmed: 0, keys: 0 });
   const apply = (d: CloudResult) => {
+    if (d.referrals) setRefStats(d.referrals);
     setBalance(d.account.balance_cents / 100);
     setKeys({ red: d.account.red, purple: d.account.purple, green: d.account.green, pink: d.account.pink });
     setStats({ opened: d.account.opened, earned: d.account.earned_cents / 100 });
@@ -124,7 +126,7 @@ function LootzyApp({ profile, initData }: { profile: TelegramProfile; initData: 
         {screen === "case" && <CaseS c={sel} n={keys[sel]} close={() => go("keys")} open={openCase} done={() => go("win")} />}
         {screen === "win" && <WinS v={won} balance={balance} close={() => go("keys")} />}
         {screen === "wallet" && <WalletS balance={balance} back={() => go("home")} withdrawals={withdrawals} withdraw={withdraw} />}
-        {screen === "referral" && <ReferralS back={() => go("home")} profile={profile} />}
+        {screen === "referral" && <ReferralS back={() => go("home")} profile={profile} stats={refStats} />}
         {screen === "profile" && <ProfileS keys={keys} profile={profile} stats={stats} admin={isAdmin ? () => go("admin") : undefined} />}
         {screen === "keydetail" && <KeyDetailS c={sel} n={keys[sel]} back={() => go("keys")} open={() => go("case")} />}
 
@@ -363,7 +365,7 @@ function WalletS({ balance, back, withdrawals, withdraw }: { balance: number; ba
   );
 }
 
-function ReferralS({ back, profile }: { back: () => void; profile: TelegramProfile }) {
+function ReferralS({ back, profile, stats }: { back: () => void; profile: TelegramProfile; stats: { invited: number; confirmed: number; keys: number } }) {
   const link = referralLink(profile.id);
   const [copied, setCopied] = useState(false);
   return (
@@ -382,9 +384,9 @@ function ReferralS({ back, profile }: { back: () => void; profile: TelegramProfi
             <Button variant="ghost" size="sm" aria-label={copied ? "Copied" : "Copy referral link"} onClick={async () => { try { await navigator.clipboard.writeText(link); setCopied(true); } catch { setCopied(false); } }} className="btn-blue rounded-full"><Copy />{copied ? "Copied" : "Copy"}</Button>
           </div>
         </div>
-        <div className="flex items-center justify-between border-b pb-3 text-sm font-bold"><span>Referal progress: 0 / 10</span><span className="flex items-center gap-1"><Key c="purple" /> x1</span></div>
+        <div className="flex items-center justify-between border-b pb-3 text-sm font-bold"><span>Referal progress: {stats.confirmed % 10} / 10</span><span className="flex items-center gap-1"><Key c="purple" /> x1</span></div>
         <div className="grid grid-cols-3 gap-2">
-          {[["Total invited", "0"], ["Confirmed", "0"], ["Keys received", "0"]].map(([l, v]) => (
+          {[["Total invited", String(stats.invited)], ["Confirmed", String(stats.confirmed)], ["Keys received", String(stats.keys)]].map(([l, v]) => (
             <div key={l} className="lcard p-2"><div className="text-[11px] text-muted-foreground">{l}</div><b className="text-lg">{v}</b></div>
           ))}
         </div>
