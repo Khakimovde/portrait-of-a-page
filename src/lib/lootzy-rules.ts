@@ -23,7 +23,7 @@ export function completionReward(source: "ads" | "referrals", previous: number, 
 }
 export function referralLink(id: number) {
   if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Invalid Telegram ID");
-  return `https://t.me/${BOT_USERNAME}?startapp=ref_${id}`;
+  return `https://t.me/${BOT_USERNAME}?start=ref_${id}`;
 }
 export const ADS_PER_KEY = 10;
 export const MAX_DAILY_KEYS = 3;
