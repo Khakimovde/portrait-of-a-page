@@ -27,6 +27,7 @@ export type Database = {
           pink: number
           purple: number
           red: number
+          subscribed_at: string | null
           telegram_id: number
           updated_at: string
           username: string | null
@@ -43,6 +44,7 @@ export type Database = {
           pink?: number
           purple?: number
           red?: number
+          subscribed_at?: string | null
           telegram_id: number
           updated_at?: string
           username?: string | null
@@ -59,6 +61,7 @@ export type Database = {
           pink?: number
           purple?: number
           red?: number
+          subscribed_at?: string | null
           telegram_id?: number
           updated_at?: string
           username?: string | null
@@ -103,6 +106,45 @@ export type Database = {
           {
             foreignKeyName: "lootzy_events_telegram_id_fkey"
             columns: ["telegram_id"]
+            isOneToOne: false
+            referencedRelation: "lootzy_accounts"
+            referencedColumns: ["telegram_id"]
+          },
+        ]
+      }
+      lootzy_referrals: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string
+          referred_id: number
+          referrer_id: number
+          status: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string
+          referred_id: number
+          referrer_id: number
+          status?: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string
+          referred_id?: number
+          referrer_id?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lootzy_referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: true
+            referencedRelation: "lootzy_accounts"
+            referencedColumns: ["telegram_id"]
+          },
+          {
+            foreignKeyName: "lootzy_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "lootzy_accounts"
             referencedColumns: ["telegram_id"]
@@ -181,6 +223,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      lootzy_bot_start: {
+        Args: {
+          p_first: string
+          p_id: number
+          p_last: string
+          p_referrer?: number
+          p_username: string
+        }
+        Returns: Json
+      }
+      lootzy_confirm_subscription: { Args: { p_id: number }; Returns: Json }
       lootzy_mutate: {
         Args: {
           p_action: string
