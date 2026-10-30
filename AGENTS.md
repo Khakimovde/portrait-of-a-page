@@ -19,3 +19,4 @@
 - Count only verified ad events toward reward progress and expose unverified report totals separately so watched reports cannot imply spendable rewards.
 - The Telegram bot runs through the gateway webhook at /api/public/telegram/webhook, verified by a secret derived from the connection key; referral confirmation and referral key grants happen only in the service-role database function after a live channel-membership check, so referrals cannot be claimed without a real subscription.
 - Bot notices (withdrawals, referrals) are best-effort and must never fail or roll back the money operation that triggered them.
+- The static mini app's API URL lives in scripts/api-url.mjs and must be this project's own published URL, because a remix keeps the old URL and silently reads the old project's database.

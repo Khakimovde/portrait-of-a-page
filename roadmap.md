@@ -16,3 +16,4 @@
 - [ ] Verified ad completion / tenth-ad red key — needs configured provider confirmation: Monetag postback setup and secure per-show correlation; Onclicka authenticated completion/correlation contract is undocumented. Browser promises cannot authorize spendable keys.- [x] Bot /start with mandatory @Lootzy_en subscription check, then main menu (Boshlash mini app, Kanal, Support, To'lovlar kanali).
 - [x] Referral links open the bot; referral counts only after the friend subscribes and confirms.
 - [x] Bot messages on withdrawal request, approval, rejection and payment.
+- [x] Hosted mini app now reads this project's server (portrait-of-a-page.lovable.app) so referral counts appear; ready ZIP built.
