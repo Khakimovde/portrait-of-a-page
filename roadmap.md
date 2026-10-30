@@ -14,4 +14,6 @@
 - [ ] Verify real admin grants, case balances and withdrawal reservation/refund end-to-end — needs a real signed Telegram launch; mocked UI checks do not verify persistence.
 - [ ] Persistent referral counting — deferred; not part of current admin request.
 - [ ] Real Telegram launch verification — needs Main Mini App HTTPS URL configured in BotFather and a real signed launch.
-- [ ] Verified ad completion / tenth-ad red key — needs configured provider confirmation: Monetag postback setup and secure per-show correlation; Onclicka authenticated completion/correlation contract is undocumented. Browser promises cannot authorize spendable keys.
+- [ ] Verified ad completion / tenth-ad red key — needs configured provider confirmation: Monetag postback setup and secure per-show correlation; Onclicka authenticated completion/correlation contract is undocumented. Browser promises cannot authorize spendable keys.- [ ] Bot /start with mandatory @Lootzy_en subscription check, then main menu (Boshlash mini app, Kanal, Support, To'lovlar kanali).
+- [ ] Referral links open the bot; referral counts only after the friend subscribes and confirms.
+- [ ] Bot messages on withdrawal request, approval, rejection and payment.
