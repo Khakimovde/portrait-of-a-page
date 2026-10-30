@@ -17,3 +17,5 @@
 - Use the public authenticated-by-Telegram API for the separately hosted Vite entry, preserving route-independent shared UI.
 - Select pure static dist output for local npm builds and retain TanStack builds in the managed Lovable environment; static hosting must not discard the separately deployed trusted API.
 - Count only verified ad events toward reward progress and expose unverified report totals separately so watched reports cannot imply spendable rewards.
+- The Telegram bot runs through the gateway webhook at /api/public/telegram/webhook, verified by a secret derived from the connection key; referral confirmation and referral key grants happen only in the service-role database function after a live channel-membership check, so referrals cannot be claimed without a real subscription.
+- Bot notices (withdrawals, referrals) are best-effort and must never fail or roll back the money operation that triggered them.
