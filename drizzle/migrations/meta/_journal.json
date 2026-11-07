@@ -8,6 +8,13 @@
       "when": 1793332539993,
       "tag": "0000_bot_subscription_referrals",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794052815382,
+      "tag": "0001_pink_bonus_draw",
+      "breakpoints": true
     }
   ]
 }
