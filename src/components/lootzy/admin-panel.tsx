@@ -6,6 +6,7 @@ import avatar from "@/assets/avatar.jpg";
 import { cloudCall, type Account, type CloudResult, type Withdrawal } from "@/lib/lootzy-cloud";
 import { CASES } from "@/lib/lootzy-rules";
 import { STATUS_LABELS, dollarsToCents, canTransition } from "@/lib/lootzy-admin-rules";
+import Bonus from "./bonus";
 
 function Person({ account }: { account: Account }) {
   return <div className="flex min-w-0 items-center gap-3"><img src={account.photo_url ?? avatar} onError={e => { e.currentTarget.src = avatar; }} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" /><div className="min-w-0"><b className="block break-words">{[account.first_name, account.last_name].filter(Boolean).join(" ")}</b><span className="block break-all text-xs text-muted-foreground">{account.username ? `@${account.username} · ` : ""}{account.telegram_id}</span></div></div>;
@@ -44,7 +45,8 @@ export default function AdminPanel({ initData, back, changed }: { initData: stri
   });
   return <div className="min-h-dvh bg-background px-4 pb-8 text-foreground">
     <header className="flex items-center gap-2 py-5"><Button variant="ghost" size="icon" aria-label="Orqaga" onClick={back}><ArrowLeft /></Button><ShieldCheck className="k-green" /><h1 className="flex-1 text-xl font-extrabold">Admin panel</h1><Button variant="ghost" size="icon" aria-label="Yangilash" disabled={busy} onClick={() => void run(refresh)}><RefreshCw className={busy ? "animate-spin" : ""} size={19} /></Button></header>
-    <div className="mb-5 grid grid-cols-3 border-b">{([["overview","Statistika"],["users","Users"],["withdrawals","So‘rovlar"]] as const).map(([id,label]) => <Button key={id} variant="ghost" onClick={() => { setTab(id); setSelected(undefined); }} className={`rounded-none border-b-2 px-1 text-xs ${tab === id ? "border-primary font-extrabold" : "border-transparent text-muted-foreground"}`}>{label}</Button>)}</div>
+    <div className="mb-5 grid grid-cols-4 border-b">{([["overview","Statistika"],["users","Users"],["withdrawals","So‘rovlar"],["bonus","Pink bonus"]] as const).map(([id,label]) => <Button key={id} variant="ghost" onClick={() => { setTab(id); setSelected(undefined); }} className={`rounded-none border-b-2 px-1 text-xs ${tab === id ? "border-primary font-extrabold" : "border-transparent text-muted-foreground"}`}>{label}</Button>)}</div>
+    {tab === "bonus" && <Bonus initData={initData} admin changed={changed} />}
     {error && <p role="alert" className="mb-4 rounded-lg border border-destructive p-3 text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="mb-4 text-sm k-green">{notice}</p>}
     {busy && !data && <Loader2 className="mx-auto animate-spin" />}
