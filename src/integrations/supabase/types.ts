@@ -68,6 +68,66 @@ export type Database = {
         }
         Relationships: []
       }
+      lootzy_bonus_entries: {
+        Row: {
+          added_by: number
+          created_at: string
+          game_id: string
+          pink_count: number
+          rank: number | null
+          telegram_id: number
+        }
+        Insert: {
+          added_by: number
+          created_at?: string
+          game_id: string
+          pink_count: number
+          rank?: number | null
+          telegram_id: number
+        }
+        Update: {
+          added_by?: number
+          created_at?: string
+          game_id?: string
+          pink_count?: number
+          rank?: number | null
+          telegram_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lootzy_bonus_entries_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "lootzy_bonus_games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lootzy_bonus_entries_telegram_id_fkey"
+            columns: ["telegram_id"]
+            isOneToOne: false
+            referencedRelation: "lootzy_accounts"
+            referencedColumns: ["telegram_id"]
+          },
+        ]
+      }
+      lootzy_bonus_games: {
+        Row: {
+          drawn_at: string | null
+          drawn_by: number | null
+          id: string
+        }
+        Insert: {
+          drawn_at?: string | null
+          drawn_by?: number | null
+          id?: string
+        }
+        Update: {
+          drawn_at?: string | null
+          drawn_by?: number | null
+          id?: string
+        }
+        Relationships: []
+      }
       lootzy_events: {
         Row: {
           actor_id: number | null
@@ -223,6 +283,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      lootzy_bonus_manage: {
+        Args: {
+          p_action: string
+          p_actor: number
+          p_quantity?: number
+          p_target?: number
+        }
+        Returns: Json
+      }
       lootzy_bot_start: {
         Args: {
           p_first: string

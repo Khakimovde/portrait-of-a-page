@@ -1,4 +1,5 @@
 # Requested changes
+- [ ] Add Pink bonus participants and weighted admin draw, secure atomic prizes, pending payment notice; test and deliver static dist ZIP.
 - [x] Link Profile Support to @Lootzy_help.
 - [x] Configure local npm run build for static dist/index.html and bundled assets while preserving managed Cloud builds; build target tests passed, final static output not manually built.
 - [x] Correct ad progress to count only verified reports and show pending reports separately; verified key granting remains blocked on provider confirmation setup below.

@@ -4,10 +4,11 @@ import { verifyTelegramProfile } from "@/lib/telegram";
 import { isLootzyAdmin } from "@/lib/lootzy-admin-rules";
 import { tashkentDay } from "@/lib/lootzy-rules";
 import { notify, withdrawalText } from "@/lib/lootzy-bot";
+import { BONUS_GAME_ID } from "@/lib/lootzy-bonus-rules";
 
 const schema = z.object({
   initData: z.string().min(1).max(16384),
-  action: z.enum(["me", "overview", "search", "detail", "grant", "withdraw", "decision", "open", "ad_report"]),
+  action: z.enum(["me", "overview", "search", "detail", "grant", "withdraw", "decision", "open", "ad_report", "bonus", "bonus_add", "bonus_draw"]),
   target: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional(), query: z.string().max(100).optional(),
   color: z.enum(["red", "purple", "green", "pink"]).optional(), quantity: z.number().int().min(0).max(100000).optional(),
   amount: z.number().int().min(0).max(10000000).optional(), method: z.enum(["visa", "btc", "ltc", "doge", "uzcard", "humo"]).optional(),
@@ -33,10 +34,13 @@ export const Route = createFileRoute("/api/public/lootzy")({ server: { handlers:
       const profile = await verifyTelegramProfile(d.initData);
       authorized = true;
       const admin = isLootzyAdmin(profile.id);
-      if (["overview", "search", "detail", "grant", "decision"].includes(d.action) && !admin) return Response.json({ error: "Admin uchun ruxsat yo‘q" }, { status: 403, headers });
+       if (["overview", "search", "detail", "grant", "decision", "bonus_add", "bonus_draw"].includes(d.action) && !admin) return Response.json({ error: "Admin uchun ruxsat yo‘q" }, { status: 403, headers });
       const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
       checkedWrite(await db.from("lootzy_accounts").upsert({ telegram_id: profile.id, first_name: profile.first_name, last_name: profile.last_name ?? null, username: profile.username ?? null, photo_url: profile.photo_url ?? null }, { onConflict: "telegram_id" }));
       if (admin) checkedWrite(await db.from("lootzy_roles").upsert({ telegram_id: profile.id, role: "admin" }));
+       if (d.action === "bonus_add" || d.action === "bonus_draw") {
+         checked(await db.rpc("lootzy_bonus_manage", { p_actor: profile.id, p_action: d.action === "bonus_add" ? "add" : "draw", ...(d.target ? { p_target: d.target } : {}), ...(d.quantity !== undefined ? { p_quantity: d.quantity } : {}) }));
+       }
       if (["grant", "withdraw", "decision", "open", "ad_report"].includes(d.action)) {
         if (!d.id) throw new Error("Amal raqami kerak");
         if (d.action === "grant" && (!d.target || (!d.amount && !d.quantity))) throw new Error("Foydalanuvchi va miqdor kerak");
@@ -62,6 +66,13 @@ export const Route = createFileRoute("/api/public/lootzy")({ server: { handlers:
       const confirmedRefs = refs.filter(r => r.status === "confirmed").length;
       const referrals = { invited: refs.length, confirmed: confirmedRefs, keys: Math.floor(confirmedRefs / 10) };
       const result: Record<string, unknown> = { referrals, account, isAdmin: admin, ads: ads.filter(ad => ad.verified).length, reportedAds: ads.length, withdrawals };
+       if (["bonus", "bonus_add", "bonus_draw"].includes(d.action)) {
+         const games = checked(await db.from("lootzy_bonus_games").select("drawn_at").eq("id", BONUS_GAME_ID));
+         const entries = checked(await db.from("lootzy_bonus_entries").select("telegram_id,pink_count,rank").eq("game_id", BONUS_GAME_ID).order("created_at"));
+         const ids = entries.map(e => e.telegram_id);
+         const people = ids.length ? checked(await db.from("lootzy_accounts").select("telegram_id,first_name,username,photo_url").in("telegram_id", ids)) : [];
+         result["bonus"] = { drawnAt: games[0]?.drawn_at ?? null, participants: entries.map(e => ({ ...people.find(p => p.telegram_id === e.telegram_id), ...e })) };
+       }
       if (d.action === "overview" || d.action === "decision") {
         const events = checked(await db.from("lootzy_events").select("kind,quantity,verified").gte("created_at", start).lt("created_at", end));
         const count = await db.from("lootzy_accounts").select("telegram_id", { count: "exact", head: true });
