@@ -39,7 +39,7 @@ export const Route = createFileRoute("/api/public/lootzy")({ server: { handlers:
       checkedWrite(await db.from("lootzy_accounts").upsert({ telegram_id: profile.id, first_name: profile.first_name, last_name: profile.last_name ?? null, username: profile.username ?? null, photo_url: profile.photo_url ?? null }, { onConflict: "telegram_id" }));
       if (admin) checkedWrite(await db.from("lootzy_roles").upsert({ telegram_id: profile.id, role: "admin" }));
        if (d.action === "bonus_add" || d.action === "bonus_draw") {
-         checked(await db.rpc("lootzy_bonus_manage", { p_actor: profile.id, p_action: d.action === "bonus_add" ? "add" : "draw", ...(d.target ? { p_target: d.target } : {}), ...(d.quantity !== undefined ? { p_quantity: d.quantity } : {}) }));
+         checked(await db.rpc("lootzy_bonus_nov09_manage", { p_actor: profile.id, p_action: d.action === "bonus_add" ? "add" : "draw", ...(d.target ? { p_target: d.target } : {}), ...(d.quantity !== undefined ? { p_quantity: d.quantity } : {}) }));
        }
       if (["grant", "withdraw", "decision", "open", "ad_report"].includes(d.action)) {
         if (!d.id) throw new Error("Amal raqami kerak");
