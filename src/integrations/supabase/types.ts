@@ -292,6 +292,15 @@ export type Database = {
         }
         Returns: Json
       }
+      lootzy_bonus_nov09_manage: {
+        Args: {
+          p_action: string
+          p_actor: number
+          p_quantity?: number
+          p_target?: number
+        }
+        Returns: Json
+      }
       lootzy_bot_start: {
         Args: {
           p_first: string

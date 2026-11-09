@@ -22,3 +22,5 @@
 - The static mini app's API URL lives in scripts/api-url.mjs and must be this project's own published URL, because a remix keeps the old URL and silently reads the old project's database.
 - Bonus entries and weighted draws use a service-role-only, role-checked database function with a transaction lock, distinct persisted ranks and atomic prize grants; retries must never reroll or award twice.
 - Keep bonus UI route-independent and expose its operations through the Telegram-verified API so static hosting uses the same trusted game state.
+
+- Rotate bonus games with independent round IDs and service-role functions; preserve completed rounds and balances so old results cannot enter or pay out again in a new round.
