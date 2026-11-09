@@ -20,7 +20,7 @@ describe("admin API security", () => {
     const r = await post({ action: "grant", initData: "forged", target: 1, adminId: 5326022510, amount: 500 });
     expect(r.status).toBe(401);
   });
-  it.each(["overview", "search", "detail", "grant", "decision"])("blocks non-admin %s before accessing database", async action => {
+  it.each(["overview", "search", "detail", "grant", "decision", "bonus_add", "bonus_draw"])("blocks non-admin %s before accessing database", async action => {
     vi.mocked(verifyTelegramProfile).mockResolvedValueOnce({ id: 123, first_name: "User" });
     const r = await post({ action, initData: "valid-non-admin" });
     expect(r.status).toBe(403);
@@ -59,6 +59,27 @@ describe("Telegram account initialization", () => {
     const response = await post({ action: "me", initData: "test-signed-launch" });
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "Account write failed" });
+  });
+
+  it("reads zero participants from the new round without reading old results", async () => {
+    mockDatabase();
+    const roundFilters = vi.fn();
+    const original = database.from.getMockImplementation();
+    database.from.mockImplementation((table: string) => {
+      if (table === "lootzy_bonus_games" || table === "lootzy_bonus_entries") {
+        const query = { eq: roundFilters.mockReturnThis(), order: vi.fn().mockReturnThis(), then: (resolve: (value: object) => unknown) => Promise.resolve({ data: [], error: null }).then(resolve) };
+        roundFilters.mockReturnValue(query);
+        return { select: vi.fn().mockReturnValue(query) };
+      }
+      return original?.(table);
+    });
+    vi.mocked(verifyTelegramProfile).mockResolvedValueOnce({ id: 5326022510, first_name: "Admin" });
+    const response = await post({ action: "bonus", initData: "test-signed-launch" });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ bonus: { drawnAt: null, participants: [] } });
+    expect(roundFilters).toHaveBeenCalledWith("id", "pink-2026-11-09");
+    expect(roundFilters).toHaveBeenCalledWith("game_id", "pink-2026-11-09");
+    expect(roundFilters).not.toHaveBeenCalledWith("game_id", "pink-2026-11-08");
   });
 
   it("never counts ten unverified reports toward a red key", async () => {

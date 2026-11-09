@@ -48,7 +48,7 @@ export const Route = createFileRoute("/api/public/lootzy")({ server: { handlers:
         if (d.action === "decision" && !d.status) throw new Error("Holatni tanlang");
         const mutation = checked(await db.rpc("lootzy_mutate", { p_actor: profile.id, p_action: d.action, p_id: d.id, ...(d.target ? { p_target: d.target } : {}), ...(d.color ? { p_color: d.color } : {}), p_quantity: d.quantity ?? 0, p_amount: d.amount ?? 0, ...(d.method ? { p_method: d.method } : {}), ...(d.destination ? { p_destination: d.destination } : {}), ...(d.status ? { p_status: d.status } : {}) }));
         if (d.action === "withdraw" && d.method) await notify(profile.id, withdrawalText("pending", d.amount ?? 0, d.method));
-        if (d.action === "decision" && mutation && typeof mutation === "object" && !Array.isArray(mutation)) {
+        if (d.action === "decision" && d.status && mutation && typeof mutation === "object" && !Array.isArray(mutation)) {
           const w = mutation as { telegram_id?: number; status?: string; amount_cents?: number; method?: string };
           if (w.telegram_id && w.status === d.status) await notify(w.telegram_id, withdrawalText(d.status, w.amount_cents ?? 0, w.method ?? ""));
         }
