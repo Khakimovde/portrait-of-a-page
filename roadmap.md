@@ -1,4 +1,5 @@
 # Requested changes
+- [ ] Rotate Pink omad to November 9 at 23:00 Tashkent with zero participants, 15/10/5 Pink prizes and a refreshed Home banner; verify rules and isolation.
 - [ ] Add Pink bonus participants and weighted admin draw, secure atomic prizes, pending payment notice; test and deliver static dist ZIP.
 - [x] Link Profile Support to @Lootzy_help.
 - [x] Configure local npm run build for static dist/index.html and bundled assets while preserving managed Cloud builds; build target tests passed, final static output not manually built.
