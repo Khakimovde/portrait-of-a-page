@@ -8,7 +8,8 @@ import { BONUS_GAME_ID } from "@/lib/lootzy-bonus-rules";
 
 const schema = z.object({
   initData: z.string().min(1).max(16384),
-  action: z.enum(["me", "overview", "search", "detail", "grant", "withdraw", "decision", "open", "ad_report", "bonus", "bonus_add", "bonus_draw"]),
+  action: z.enum(["me", "overview", "search", "detail", "grant", "withdraw", "decision", "open", "ad_report", "bonus", "bonus_add", "bonus_draw", "mining", "mining_start"]),
+  rate: z.number().int().min(1000).max(1000000).optional(),
   target: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional(), query: z.string().max(100).optional(),
   color: z.enum(["red", "purple", "green", "pink"]).optional(), quantity: z.number().int().min(0).max(100000).optional(),
   amount: z.number().int().min(0).max(10000000).optional(), method: z.enum(["visa", "btc", "ltc", "doge", "uzcard", "humo"]).optional(),
@@ -34,10 +35,16 @@ export const Route = createFileRoute("/api/public/lootzy")({ server: { handlers:
       const profile = await verifyTelegramProfile(d.initData);
       authorized = true;
       const admin = isLootzyAdmin(profile.id);
-       if (["overview", "search", "detail", "grant", "decision", "bonus_add", "bonus_draw"].includes(d.action) && !admin) return Response.json({ error: "Admin uchun ruxsat yo‘q" }, { status: 403, headers });
+       if (["overview", "search", "detail", "grant", "decision", "bonus_add", "bonus_draw", "mining_start"].includes(d.action) && !admin) return Response.json({ error: "Admin uchun ruxsat yo‘q" }, { status: 403, headers });
       const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
       checkedWrite(await db.from("lootzy_accounts").upsert({ telegram_id: profile.id, first_name: profile.first_name, last_name: profile.last_name ?? null, username: profile.username ?? null, photo_url: profile.photo_url ?? null }, { onConflict: "telegram_id" }));
       if (admin) checkedWrite(await db.from("lootzy_roles").upsert({ telegram_id: profile.id, role: "admin" }));
+       if (["bonus", "bonus_add", "bonus_draw"].includes(d.action)) throw new Error("Pink omad yakunlangan");
+       checked(await db.rpc("lootzy_mining_settle", { p_target: profile.id }));
+       if (d.action === "mining_start") {
+         if (!d.id || !d.target || !d.rate || ![50000,100000].includes(d.amount ?? 0)) throw new Error("ID, tarif va dollar kursini kiriting");
+         checked(await db.rpc("lootzy_mining_start", { p_actor: profile.id, p_target: d.target, p_id: d.id, p_principal: d.amount ?? 0, p_rate: d.rate }));
+       }
        if (d.action === "bonus_add" || d.action === "bonus_draw") {
          checked(await db.rpc("lootzy_bonus_nov09_manage", { p_actor: profile.id, p_action: d.action === "bonus_add" ? "add" : "draw", ...(d.target ? { p_target: d.target } : {}), ...(d.quantity !== undefined ? { p_quantity: d.quantity } : {}) }));
        }
@@ -66,6 +73,14 @@ export const Route = createFileRoute("/api/public/lootzy")({ server: { handlers:
       const confirmedRefs = refs.filter(r => r.status === "confirmed").length;
       const referrals = { invited: refs.length, confirmed: confirmedRefs, keys: Math.floor(confirmedRefs / 10) };
       const result: Record<string, unknown> = { referrals, account, isAdmin: admin, ads: ads.filter(ad => ad.verified).length, reportedAds: ads.length, withdrawals };
+       result["serverTime"] = new Date().toISOString();
+       if (d.action === "mining" || d.action === "mining_start") {
+         const query = db.from("lootzy_mining").select("*").order("started_at", { ascending: false });
+         const runs = checked(await (admin ? query.limit(200) : query.eq("telegram_id", profile.id).limit(100)));
+         const ids = [...new Set(runs.map(r => r.telegram_id))];
+         const people = admin && ids.length ? checked(await db.from("lootzy_accounts").select("*").in("telegram_id", ids)) : [];
+         result["mining"] = runs.map(r => ({ ...r, ...(admin ? { account: people.find(p => p.telegram_id === r.telegram_id) } : {}) }));
+       }
        if (["bonus", "bonus_add", "bonus_draw"].includes(d.action)) {
          const games = checked(await db.from("lootzy_bonus_games").select("drawn_at").eq("id", BONUS_GAME_ID));
          const entries = checked(await db.from("lootzy_bonus_entries").select("telegram_id,pink_count,rank").eq("game_id", BONUS_GAME_ID).order("created_at"));

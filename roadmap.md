@@ -1,6 +1,8 @@
 # Requested changes
-- [ ] Rotate Pink omad to November 9 at 23:00 Tashkent with zero participants, 15/10/5 Pink prizes and a refreshed Home banner; verify rules and isolation.
-- [ ] Add Pink bonus participants and weighted admin draw, secure atomic prizes, pending payment notice; test and deliver static dist ZIP.
+- [x] Replace Pink omad with admin-activated 50,000/100,000 UZS Mining, fixed-at-start exchange rate and atomic 48-hour triple payout; database rollback test and UI confirmation checked.
+- [x] Persist withdrawal queue numbers and seven-day deadlines for 124 existing open and all new requests; 76 tests passed.
+- [ ] Verify Mining activation and payout through real Telegram UI — requires a real signed Telegram launch unavailable in this session.
+- [x] Previous Pink bonus rounds superseded by Mining; historical results and prizes preserved.
 - [x] Link Profile Support to @Lootzy_help.
 - [x] Configure local npm run build for static dist/index.html and bundled assets while preserving managed Cloud builds; build target tests passed, final static output not manually built.
 - [x] Correct ad progress to count only verified reports and show pending reports separately; verified key granting remains blocked on provider confirmation setup below.

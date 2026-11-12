@@ -153,6 +153,9 @@
   --app-red: oklch(0.6 0.23 25);
   --app-green: oklch(0.72 0.19 150);
   --app-gold: oklch(0.83 0.16 85);
+  --mining-surface: oklch(0.94 0.04 165);
+  --mining-ink: oklch(0.32 0.08 165);
+  --mining-border: oklch(0.74 0.1 165);
   --bonus-surface: oklch(0.95 0.045 350);
   --bonus-ink: oklch(0.3 0.1 350);
   --bonus-accent: oklch(0.5 0.21 350);
@@ -160,6 +163,7 @@
   --bonus-shadow: 0 4px 14px oklch(0.5 0.16 350 / 12%);
 }
 @layer components{
+  .mining-banner,.mining-banner:hover{background:var(--mining-surface);color:var(--mining-ink);border:1px solid var(--mining-border);border-left:5px solid var(--app-green)}
   .bonus-round-banner{background:var(--bonus-surface);color:var(--bonus-ink);border:1px solid var(--bonus-border);border-left:5px solid var(--bonus-accent);box-shadow:var(--bonus-shadow)}
   .bonus-round-banner:hover{background:var(--bonus-surface);color:var(--bonus-ink)}
   .bonus-round-label{color:var(--bonus-accent)}

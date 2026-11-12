@@ -172,6 +172,50 @@ export type Database = {
           },
         ]
       }
+      lootzy_mining: {
+        Row: {
+          actor_id: number
+          ends_at: string
+          id: string
+          paid_at: string | null
+          payout_cents: number
+          principal_uzs: number
+          rate_uzs: number
+          started_at: string
+          telegram_id: number
+        }
+        Insert: {
+          actor_id: number
+          ends_at?: string
+          id: string
+          paid_at?: string | null
+          payout_cents: number
+          principal_uzs: number
+          rate_uzs: number
+          started_at?: string
+          telegram_id: number
+        }
+        Update: {
+          actor_id?: number
+          ends_at?: string
+          id?: string
+          paid_at?: string | null
+          payout_cents?: number
+          principal_uzs?: number
+          rate_uzs?: number
+          started_at?: string
+          telegram_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lootzy_mining_telegram_id_fkey"
+            columns: ["telegram_id"]
+            isOneToOne: false
+            referencedRelation: "lootzy_accounts"
+            referencedColumns: ["telegram_id"]
+          },
+        ]
+      }
       lootzy_referrals: {
         Row: {
           confirmed_at: string | null
@@ -240,8 +284,11 @@ export type Database = {
           created_at: string
           decided_by: number | null
           destination: string
+          due_at: string | null
           id: string
           method: string
+          queue_number: number | null
+          queue_started_at: string | null
           status: string
           telegram_id: number
           updated_at: string
@@ -251,8 +298,11 @@ export type Database = {
           created_at?: string
           decided_by?: number | null
           destination: string
+          due_at?: string | null
           id: string
           method: string
+          queue_number?: number | null
+          queue_started_at?: string | null
           status?: string
           telegram_id: number
           updated_at?: string
@@ -262,8 +312,11 @@ export type Database = {
           created_at?: string
           decided_by?: number | null
           destination?: string
+          due_at?: string | null
           id?: string
           method?: string
+          queue_number?: number | null
+          queue_started_at?: string | null
           status?: string
           telegram_id?: number
           updated_at?: string
@@ -312,6 +365,17 @@ export type Database = {
         Returns: Json
       }
       lootzy_confirm_subscription: { Args: { p_id: number }; Returns: Json }
+      lootzy_mining_settle: { Args: { p_target?: number }; Returns: number }
+      lootzy_mining_start: {
+        Args: {
+          p_actor: number
+          p_id: string
+          p_principal: number
+          p_rate: number
+          p_target: number
+        }
+        Returns: Json
+      }
       lootzy_mutate: {
         Args: {
           p_action: string

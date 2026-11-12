@@ -64,4 +64,4 @@ export const WITHDRAW_METHODS = [
   { id: "uzcard", name: "Uzcard", sub: "UZS card", min: 2.5 },
   { id: "humo", name: "Humo", sub: "UZS card", min: 2.5 },
 ] as const;
-export const PAYOUT_DAYS = 2;
+export const PAYOUT_DAYS = 7;

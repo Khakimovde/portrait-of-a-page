@@ -24,3 +24,5 @@
 - Keep bonus UI route-independent and expose its operations through the Telegram-verified API so static hosting uses the same trusted game state.
 
 - Rotate bonus games with independent round IDs and service-role functions; preserve completed rounds and balances so old results cannot enter or pay out again in a new round.
+- Mining runs persist their exchange rate and payout at admin activation; service-role-only settlement locks each due run and credits it once, with hourly reconciliation plus settlement on authenticated reads.
+- Withdrawal queue numbers are immutable global ticket numbers assigned by an insert trigger; persisted deadlines are independent of payment status and never automatically mark a transfer paid.

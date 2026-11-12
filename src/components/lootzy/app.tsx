@@ -11,8 +11,9 @@ import avatar from "@/assets/avatar.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import AdminPanel from "./admin-panel";
-import Bonus, { BonusBanner } from "./bonus";
-import { pendingPayment } from "@/lib/lootzy-bonus-rules";
+import Mining, { MiningBanner } from "./mining";
+import Countdown from "./countdown";
+import { openPayment } from "@/lib/lootzy-mining-rules";
 import { cloudCall, type CloudResult, type Withdrawal } from "@/lib/lootzy-cloud";
 import { dollarsToCents, STATUS_LABELS } from "@/lib/lootzy-admin-rules";
 
@@ -46,7 +47,7 @@ export default function App() {
   </div></div>;
 }
 
-type Screen = "home" | "keys" | "wallet" | "referral" | "profile" | "case" | "win" | "keydetail" | "admin" | "bonus";
+type Screen = "home" | "keys" | "wallet" | "referral" | "profile" | "case" | "win" | "keydetail" | "admin" | "mining";
 
 const Key = ({ c, size = 22 }: { c: Color; size?: number }) => (
   <KeyRound className={`k-${c}`} size={size} strokeWidth={2.6} />
@@ -67,8 +68,10 @@ function LootzyApp({ profile, initData }: { profile: TelegramProfile; initData: 
   const [isAdmin, setIsAdmin] = useState(false);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [cloudError, setCloudError] = useState("");
+  const [clockOffset, setClockOffset] = useState(0);
   const [refStats, setRefStats] = useState({ invited: 0, confirmed: 0, keys: 0 });
   const apply = (d: CloudResult) => {
+    if (d.serverTime) setClockOffset(Date.parse(d.serverTime)-Date.now());
     if (d.referrals) setRefStats(d.referrals);
     setBalance(d.account.balance_cents / 100);
     setKeys({ red: d.account.red, purple: d.account.purple, green: d.account.green, pink: d.account.pink });
@@ -123,12 +126,12 @@ function LootzyApp({ profile, initData }: { profile: TelegramProfile; initData: 
       <div className="relative w-full max-w-[430px] min-h-screen pb-20">
         {cloudError && <div role="alert" className="p-4 text-sm text-destructive">{cloudError}<Button variant="ghost" onClick={() => void sync()}>Qayta urinish</Button></div>}
         {screen === "admin" && isAdmin && <AdminPanel initData={initData} back={() => go("profile")} changed={() => void sync()} />}
-        {screen === "home" && <HomeS bonus={() => go("bonus")} balance={balance} ads={ads} reportedAds={reportedAds} busy={adBusy} msg={adMsg} onWatch={() => void watchAd()} />}
-        {screen === "bonus" && <Bonus initData={initData} back={() => go("home")} />}
+        {screen === "home" && <HomeS mining={() => go("mining")} balance={balance} ads={ads} reportedAds={reportedAds} busy={adBusy} msg={adMsg} onWatch={() => void watchAd()} />}
+        {screen === "mining" && <Mining initData={initData} back={() => go("home")} changed={() => void sync()} />}
         {screen === "keys" && <KeysS keys={keys} back={() => go("home")} pick={(c) => { setSel(c); go("case"); }} detail={(c) => { setSel(c); go("keydetail"); }} />}
         {screen === "case" && <CaseS c={sel} n={keys[sel]} close={() => go("keys")} open={openCase} done={() => go("win")} />}
         {screen === "win" && <WinS v={won} balance={balance} close={() => go("keys")} />}
-        {screen === "wallet" && <WalletS balance={balance} back={() => go("home")} withdrawals={withdrawals} withdraw={withdraw} />}
+        {screen === "wallet" && <WalletS clockOffset={clockOffset} balance={balance} back={() => go("home")} withdrawals={withdrawals} withdraw={withdraw} />}
         {screen === "referral" && <ReferralS back={() => go("home")} profile={profile} stats={refStats} />}
         {screen === "profile" && <ProfileS keys={keys} profile={profile} stats={stats} admin={isAdmin ? () => go("admin") : undefined} />}
         {screen === "keydetail" && <KeyDetailS c={sel} n={keys[sel]} back={() => go("keys")} open={() => go("case")} />}
@@ -157,7 +160,7 @@ function Header({ title, back, right }: { title: string; back?: () => void; righ
   );
 }
 
-function HomeS({ balance, ads, reportedAds, busy, msg, onWatch, bonus }: { balance: number; ads: number; reportedAds: number; busy: boolean; msg: string; onWatch: () => void; bonus: () => void }) {
+function HomeS({ balance, ads, reportedAds, busy, msg, onWatch, mining }: { balance: number; ads: number; reportedAds: number; busy: boolean; msg: string; onWatch: () => void; mining: () => void }) {
   const limit = reportedAds >= MAX_DAILY_ADS;
   const progress = ads % ADS_PER_KEY;
   const keysToday = Math.floor(ads / ADS_PER_KEY);
@@ -175,7 +178,7 @@ function HomeS({ balance, ads, reportedAds, busy, msg, onWatch, bonus }: { balan
         </div>
       </div>
       <div className="space-y-3 px-4 pt-4">
-        <BonusBanner open={bonus} />
+        <MiningBanner open={mining} />
         <Button variant="ghost" disabled={busy || limit} onClick={onWatch} className="watch-ad watch-card h-auto flex w-full items-center gap-3 whitespace-normal rounded-2xl p-4 text-left shadow-xl disabled:opacity-70">
           <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full btn-green">{busy ? <Loader2 className="animate-spin" size={26} /> : <Play fill="currentColor" size={26} />}</span>
           <span className="min-w-0 flex-1"><b className="block text-base">{limit ? "Bugungi limit tugadi" : busy ? "Reklama ochilmoqda..." : "Reklama ko‘rish"}</b><span className="text-xs opacity-90">{limit ? "Ertaga 00:00 (Toshkent) da yangilanadi" : "10 ta reklama = 1 ta red kalit"}</span></span>
@@ -323,7 +326,7 @@ function BrandLogo({ id }: { id: string }) {
   return <div className={base}><svg viewBox="0 0 64 32" className="h-10 w-20"><rect width="64" height="32" rx="6" fill="#00A651"/><text x="32" y="21" textAnchor="middle" fontSize="14" fontWeight="900" fill="#fff">HUMO</text></svg></div>;
 }
 
-function WalletS({ balance, back, withdrawals, withdraw }: { balance: number; back: () => void; withdrawals: Withdrawal[]; withdraw: (method: string, amount: number, destination: string) => Promise<void> }) {
+function WalletS({ balance, back, withdrawals, withdraw, clockOffset }: { clockOffset: number; balance: number; back: () => void; withdrawals: Withdrawal[]; withdraw: (method: string, amount: number, destination: string) => Promise<void> }) {
   const [amount, setAmount] = useState("");
   const [destination, setDestination] = useState("");
   const [busy, setBusy] = useState(false);
@@ -362,9 +365,9 @@ function WalletS({ balance, back, withdrawals, withdraw }: { balance: number; ba
         )}
         {message && <p role="status" className="mt-3 text-sm">{message}</p>}
         <h2 className="mt-5 mb-2 text-sm font-extrabold">Yechish so‘rovlari</h2>
-        {withdrawals.some(w => pendingPayment(w.status)) && <p role="status" className="bg-blue-soft mb-3 rounded-lg p-3 text-sm">⏳ Menejerimiz to‘lov yubormoqda, tez orada to‘lab beriladi.</p>}
+        {withdrawals.some(w => openPayment(w.status)) && <p role="status" className="bg-blue-soft mb-3 rounded-lg p-3 text-sm">⏳ Menejerimiz to‘lov yubormoqda, tez orada to‘lab beriladi.</p>}
         {!withdrawals.length && <p className="py-3 text-xs text-muted-foreground">Hozircha so‘rovlar yo‘q</p>}
-        {withdrawals.map(w => <div key={w.id} className="flex justify-between gap-2 border-b py-3 text-xs"><span className="uppercase">{w.method}<small className="block normal-case text-muted-foreground">{STATUS_LABELS[w.status]}</small></span><b>${(w.amount_cents/100).toFixed(2)}</b></div>)}
+        {withdrawals.map(w => <div key={w.id} className="flex justify-between gap-2 border-b py-3 text-xs"><span className="uppercase">{w.method}<small className="block normal-case text-muted-foreground">{STATUS_LABELS[w.status]}</small>{w.queue_number && <small className="block mt-1 normal-case font-bold">#{w.queue_number} navbat</small>}{openPayment(w.status) && w.due_at && <small className="block mt-1 normal-case"><Countdown deadline={w.due_at} offset={clockOffset} expired="Muddat tugadi — to‘lov kutilmoqda"/></small>}</span><b>${(w.amount_cents/100).toFixed(2)}</b></div>)}
       </div>
     </div>
   );
