@@ -26,3 +26,4 @@
 - Rotate bonus games with independent round IDs and service-role functions; preserve completed rounds and balances so old results cannot enter or pay out again in a new round.
 - Mining runs persist their exchange rate and payout at admin activation; service-role-only settlement locks each due run and credits it once, with hourly reconciliation plus settlement on authenticated reads.
 - Withdrawal queue numbers are immutable global ticket numbers assigned by an insert trigger; persisted deadlines are independent of payment status and never automatically mark a transfer paid.
+- Purchase-promotion UI uses one fixed shared window and server clock offset; contact-only offers never grant rewards from browser clicks and remain independent of TanStack routes for static hosting.

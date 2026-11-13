@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import AdminPanel from "./admin-panel";
 import Mining, { MiningBanner } from "./mining";
+import MiningPromotion, { MiningPromotionBanner } from "./mining-promotion";
 import Countdown from "./countdown";
 import { openPayment } from "@/lib/lootzy-mining-rules";
 import { cloudCall, type CloudResult, type Withdrawal } from "@/lib/lootzy-cloud";
@@ -47,7 +48,7 @@ export default function App() {
   </div></div>;
 }
 
-type Screen = "home" | "keys" | "wallet" | "referral" | "profile" | "case" | "win" | "keydetail" | "admin" | "mining";
+type Screen = "home" | "keys" | "wallet" | "referral" | "profile" | "case" | "win" | "keydetail" | "admin" | "mining" | "promotion";
 
 const Key = ({ c, size = 22 }: { c: Color; size?: number }) => (
   <KeyRound className={`k-${c}`} size={size} strokeWidth={2.6} />
@@ -126,7 +127,8 @@ function LootzyApp({ profile, initData }: { profile: TelegramProfile; initData: 
       <div className="relative w-full max-w-[430px] min-h-screen pb-20">
         {cloudError && <div role="alert" className="p-4 text-sm text-destructive">{cloudError}<Button variant="ghost" onClick={() => void sync()}>Qayta urinish</Button></div>}
         {screen === "admin" && isAdmin && <AdminPanel initData={initData} back={() => go("profile")} changed={() => void sync()} />}
-        {screen === "home" && <HomeS mining={() => go("mining")} balance={balance} ads={ads} reportedAds={reportedAds} busy={adBusy} msg={adMsg} onWatch={() => void watchAd()} />}
+        {screen === "home" && <HomeS promotion={() => go("promotion")} clockOffset={clockOffset} mining={() => go("mining")} balance={balance} ads={ads} reportedAds={reportedAds} busy={adBusy} msg={adMsg} onWatch={() => void watchAd()} />}
+        {screen === "promotion" && <MiningPromotion back={() => go("home")} offset={clockOffset}/>}
         {screen === "mining" && <Mining initData={initData} back={() => go("home")} changed={() => void sync()} />}
         {screen === "keys" && <KeysS keys={keys} back={() => go("home")} pick={(c) => { setSel(c); go("case"); }} detail={(c) => { setSel(c); go("keydetail"); }} />}
         {screen === "case" && <CaseS c={sel} n={keys[sel]} close={() => go("keys")} open={openCase} done={() => go("win")} />}
@@ -160,7 +162,7 @@ function Header({ title, back, right }: { title: string; back?: () => void; righ
   );
 }
 
-function HomeS({ balance, ads, reportedAds, busy, msg, onWatch, mining }: { balance: number; ads: number; reportedAds: number; busy: boolean; msg: string; onWatch: () => void; mining: () => void }) {
+function HomeS({ balance, ads, reportedAds, busy, msg, onWatch, mining, promotion, clockOffset }: { balance: number; ads: number; reportedAds: number; busy: boolean; msg: string; onWatch: () => void; mining: () => void; promotion: () => void; clockOffset: number }) {
   const limit = reportedAds >= MAX_DAILY_ADS;
   const progress = ads % ADS_PER_KEY;
   const keysToday = Math.floor(ads / ADS_PER_KEY);
@@ -179,6 +181,7 @@ function HomeS({ balance, ads, reportedAds, busy, msg, onWatch, mining }: { bala
       </div>
       <div className="space-y-3 px-4 pt-4">
         <MiningBanner open={mining} />
+        <MiningPromotionBanner open={promotion} offset={clockOffset}/>
         <Button variant="ghost" disabled={busy || limit} onClick={onWatch} className="watch-ad watch-card h-auto flex w-full items-center gap-3 whitespace-normal rounded-2xl p-4 text-left shadow-xl disabled:opacity-70">
           <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full btn-green">{busy ? <Loader2 className="animate-spin" size={26} /> : <Play fill="currentColor" size={26} />}</span>
           <span className="min-w-0 flex-1"><b className="block text-base">{limit ? "Bugungi limit tugadi" : busy ? "Reklama ochilmoqda..." : "Reklama ko‘rish"}</b><span className="text-xs opacity-90">{limit ? "Ertaga 00:00 (Toshkent) da yangilanadi" : "10 ta reklama = 1 ta red kalit"}</span></span>
