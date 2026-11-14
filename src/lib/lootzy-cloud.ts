@@ -11,8 +11,21 @@ export type CloudRequest = { action: "me" | "overview" | "search" | "detail" | "
 
 export async function cloudCall(initData: string, input: CloudRequest): Promise<CloudResult & { bonus?: BonusResult }> {
   const base = import.meta.env["VITE_LOOTZY_API_URL"] ?? "";
-  const response = await fetch(`${base}/api/public/lootzy`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...input, initData }) });
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.error ?? "Xizmatga ulanib bo‘lmadi");
-  return result;
+  let lastError = "Xizmatga ulanib bo‘lmadi, birozdan keyin qayta urinib ko‘ring";
+  // Temporary hosting errors (e.g. Cloudflare 1016) return plain text, not JSON: retry, then show a friendly message.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise(r => setTimeout(r, 800 * attempt));
+    let response: Response;
+    try {
+      response = await fetch(`${base}/api/public/lootzy`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...input, initData }) });
+    } catch { continue; }
+    let result: { error?: string } & Record<string, unknown>;
+    try { result = await response.json(); } catch { continue; }
+    if (!response.ok) {
+      if (response.status >= 500) { lastError = result.error ?? lastError; continue; }
+      throw new Error(result.error ?? lastError);
+    }
+    return result as unknown as CloudResult & { bonus?: BonusResult };
+  }
+  throw new Error(lastError);
 }
