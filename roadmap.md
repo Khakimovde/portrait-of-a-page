@@ -1,4 +1,5 @@
 # Requested changes
+- [ ] Restore paused Lovable Cloud and export a read-only withdrawal snapshot for manual payments — resume was refused because workspace Cloud credits are exhausted; requires Cloud credit top-up before live statuses can be read.
 - [x] Add visible Mining purchase promotion with fixed 15-hour countdown, exact case bonuses, details and admin contact; 16 tests passed and isolated desktop/mobile UI checked; rewards remain admin-issued, real Telegram flow unverified.
 - [x] Replace Pink omad with admin-activated 50,000/100,000 UZS Mining, fixed-at-start exchange rate and atomic 48-hour triple payout; database rollback test and UI confirmation checked.
 - [x] Persist withdrawal queue numbers and seven-day deadlines for 124 existing open and all new requests; 76 tests passed.
